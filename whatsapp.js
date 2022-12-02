@@ -103,7 +103,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
           console.log(number);
           console.log(message.message.extendedTextMessage.text);
 	const text = message.message.conversation;
-	if(message.message.conversation === null )
+	if(message.message.extendedTextMessage.text != null )
         {
 		text = message.message.extendedTextMessage.text;
         }
@@ -114,7 +114,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
             const mynumber = number.replace(/\D/g, '')
             const texte = text.toLowerCase()
             console.log(mynumber)
-            console.log(texte)
+            console.log('jaenudin',texte)
             db.query(`select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `, async (err, results) => {
                 if (err) throw err;
                 if (results.length === 0) return;
