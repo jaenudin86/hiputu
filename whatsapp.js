@@ -98,6 +98,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
         if (!message.key.fromMe && m.type === 'notify') {
             await delay(1000)
 
+
             const number = phoneNumberFormatter(message.key.remoteJid)
           console.log(number);
           console.log(message.message.extendedTextMessage.text);
