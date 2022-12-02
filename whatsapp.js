@@ -97,15 +97,16 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
 
         if (!message.key.fromMe && m.type === 'notify') {
             await delay(1000)
-            
+
             const number = phoneNumberFormatter(message.key.remoteJid)
           console.log(number);
 	const text = message.message.conversation;
-	if(message.message.conversation === '')
+	if(message.message.conversation === null )
         {
 		text = message.message.extendedTextMessage.text;
         }
-           
+
+
 // message.message.extendedTextMessage.text;
 	console.log(text);
             const mynumber = number.replace(/\D/g, '')
