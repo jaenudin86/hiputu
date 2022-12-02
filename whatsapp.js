@@ -100,6 +100,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
 
             const number = phoneNumberFormatter(message.key.remoteJid)
           console.log(number);
+          console.log(message.message.conversation);
 	const text = message.message.conversation;
 	if(message.message.conversation === null )
         {
@@ -108,7 +109,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
 
 
 // message.message.extendedTextMessage.text;
-	console.log(text);
+
             const mynumber = number.replace(/\D/g, '')
             const texte = text.toLowerCase()
             console.log(mynumber)
