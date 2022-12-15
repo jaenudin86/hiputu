@@ -14,7 +14,7 @@ import makeWASocket, {
 import { toDataURL } from 'qrcode'
 import __dirname from './dirname.js'
 import response from './response.js'
-import { db,sdb8 }  from './database/Database.js'
+//import { db,sdb8 }  from './database/Database.js'
 
 
 const sessions = new Map()
@@ -110,110 +110,110 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
 
 // message.message.extendedTextMessage.text;
 
-            const mynumber = number.replace(/\D/g, '')
-            const texte = text.toLowerCase()
-            console.log(mynumber)
-            console.log('jaenudin',texte)
-            db.query(`select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `, async (err, results) => {
-                if (err) throw err;
-                if (results.length === 0) return;
-                if (!results[0].media) {
-                    if(!results[0].query)
-                    {
+//             const mynumber = number.replace(/\D/g, '')
+//             const texte = text.toLowerCase()
+//             console.log(mynumber)
+//             console.log('jaenudin',texte)
+//             db.query(`select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `, async (err, results) => {
+//                 if (err) throw err;
+//                 if (results.length === 0) return;
+//                 if (!results[0].media) {
+//                     if(!results[0].query)
+//                     {
 
-                        wa.sendMessage(message.key.remoteJid, { text: results[0].response})
+//                         wa.sendMessage(message.key.remoteJid, { text: results[0].response})
 
-                    }
-                    else
-                    {
-                        var dbs = "";
-                        db.query(`SELECT * FROM query join koneksi on query.connection = koneksi.id  WHERE query.id = "${results[0].query}"`, async (err, results2) => {
+//                     }
+//                     else
+//                     {
+//                         var dbs = "";
+//                         db.query(`SELECT * FROM query join koneksi on query.connection = koneksi.id  WHERE query.id = "${results[0].query}"`, async (err, results2) => {
 
-                        if(results2[0].koneksi == 'sdb8')
-                        {
-                            dbs = sdb8;
+//                         if(results2[0].koneksi == 'sdb8')
+//                         {
+//                             dbs = sdb8;
 
-                        }
-                        else if(results2[0].koneksi == 'sdb3')
-                        {
-                            dbs = sdb8;
+//                         }
+//                         else if(results2[0].koneksi == 'sdb3')
+//                         {
+//                             dbs = sdb8;
 
-                        }
-                            dbs.query(`${results2[0].query}`, async (err1, results3) => {
+//                         }
+//                             dbs.query(`${results2[0].query}`, async (err1, results3) => {
 
-                                console.log(err1)
-                                let nilai = '';
-                                let hasil = '';
-                                let html  = results2[0].format
-                                console.log(results3.recordset)
-                                for(var prop in results3.recordset  )
-                                {
-                                    for(var prove in results3.recordset[prop] )
-                                    {
-                                        console.log(prove,results3.recordset[prop][prove]);
-                                        console.log(prove + " -> " + results3.recordset[prop][prove]);
-                                        nilai = prove;
-                                        hasil += results3.recordset[prop][prove] + '\r\n'
+//                                 console.log(err1)
+//                                 let nilai = '';
+//                                 let hasil = '';
+//                                 let html  = results2[0].format
+//                                 console.log(results3.recordset)
+//                                 for(var prop in results3.recordset  )
+//                                 {
+//                                     for(var prove in results3.recordset[prop] )
+//                                     {
+//                                         console.log(prove,results3.recordset[prop][prove]);
+//                                         console.log(prove + " -> " + results3.recordset[prop][prove]);
+//                                         nilai = prove;
+//                                         hasil += results3.recordset[prop][prove] + '\r\n'
 
-                                    }
-                                }
-                                // }
-                                console.log('['+nilai+']');
+//                                     }
+//                                 }
+//                                 // }
+//                                 console.log('['+nilai+']');
 
-				var today = new Date();
-				var dd = String(today.getDate()).padStart(2, '0');
-				var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-				var yyyy = today.getFullYear();
-                                console.log(hasil);
-				today = mm + '/' + dd + '/' + yyyy;
-                                let result = html.replace('['+nilai+']', hasil);
-				let result2 = result.replace('Hari',today);
-                wa.sendMessage(message.key.remoteJid, { text: result2})
+// 				var today = new Date();
+// 				var dd = String(today.getDate()).padStart(2, '0');
+// 				var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+// 				var yyyy = today.getFullYear();
+//                                 console.log(hasil);
+// 				today = mm + '/' + dd + '/' + yyyy;
+//                                 let result = html.replace('['+nilai+']', hasil);
+// 				let result2 = result.replace('Hari',today);
+//                 wa.sendMessage(message.key.remoteJid, { text: result2})
 
-                            })
+//                             })
 
-                            // client.sendMessage(sender, results[0].response, MessageType.text);
-                        })
-                    }
-                } else {
-                    const url = results[0].media;
-                    const file = url.split("/");
-                    const namefile = file[file.length - 1];
-                    const explodename = namefile.split(".");
-                    const typefile = explodename[1];
+//                             // client.sendMessage(sender, results[0].response, MessageType.text);
+//                         })
+//                     }
+//                 } else {
+//                     const url = results[0].media;
+//                     const file = url.split("/");
+//                     const namefile = file[file.length - 1];
+//                     const explodename = namefile.split(".");
+//                     const typefile = explodename[1];
 
-                    switch (typefile) {
-                        case 'jpg':
-                        case 'png':
-                        case 'jpeg':
-                            client.sendMessage(sender, { url: url }, MessageType.image, { caption: results[0].response }).catch(err => {
-                                console.log('Gagal balas pesan')
-                            })
-                            break;
-                        case 'pdf':
-                        case 'doc':
-                        case 'docx':
-                            try {
-                                //console.log(url)
-                                const response = await axios.get(url, { responseType: 'arraybuffer' });
-                                const buffer = Buffer.from(response.data, "utf-8");
-                                client.sendMessage(sender, buffer, MessageType.document, {
-                                    filename: namefile,
-                                    mimetype: typefile
-                                })
-                            } catch (err) {
-                                console.log("gagal" + err)
-                            }
-                    }
-                }
-            })
+//                     switch (typefile) {
+//                         case 'jpg':
+//                         case 'png':
+//                         case 'jpeg':
+//                             client.sendMessage(sender, { url: url }, MessageType.image, { caption: results[0].response }).catch(err => {
+//                                 console.log('Gagal balas pesan')
+//                             })
+//                             break;
+//                         case 'pdf':
+//                         case 'doc':
+//                         case 'docx':
+//                             try {
+//                                 //console.log(url)
+//                                 const response = await axios.get(url, { responseType: 'arraybuffer' });
+//                                 const buffer = Buffer.from(response.data, "utf-8");
+//                                 client.sendMessage(sender, buffer, MessageType.document, {
+//                                     filename: namefile,
+//                                     mimetype: typefile
+//                                 })
+//                             } catch (err) {
+//                                 console.log("gagal" + err)
+//                             }
+//                     }
+//                 }
+//             })
 
             // await wa.sendMessage(message.key.remoteJid, { text: `Sistem otomatis block!\nJangan menelpon bot!\nSilahkan Hubungi Owner Untuk Dibuka !`})
-            if (isLegacy) {
-                await wa.chatRead(message.key, 1)
-            } else {
-                await wa.sendReadReceipt(message.key.remoteJid, message.key.participant, [message.key.id])
-            }
+//             if (isLegacy) {
+//                 await wa.chatRead(message.key, 1)
+//             } else {
+//                 await wa.sendReadReceipt(message.key.remoteJid, message.key.participant, [message.key.id])
+//             }
         }
     })
     wa.ws.on('CB:call', async (json) => {
