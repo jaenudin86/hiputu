@@ -101,10 +101,14 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
 
         const number = phoneNumberFormatter(message.key.remoteJid)
         console.log(number);
-	    var text = message.message.conversation;
-	    if(!message.message.conversation)
+	    var text = "";
+	    if(message.message.conversation && message.type === "conversation")
         {
-    		text = message.message.extendedTextMessage.text;
+    		text = message.message.conversation;
+        }
+        else if(message.message.extendedTextMessage && m.type === "extendedTextMessage"
+        {
+            text = message.message.extendedTextMessage.text;
         }
 
 
