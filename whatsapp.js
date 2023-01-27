@@ -102,18 +102,46 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
         const number = phoneNumberFormatter(message.key.remoteJid)
         console.log(number);
 	    var text = "";
-	    if(message.message.conversation && message.type === "conversation")
+	    if(message.message.conversation )
         {
     		text = message.message.conversation;
         }
-        else if(message.message.extendedTextMessage && m.type === "extendedTextMessage"
+        else if(message.message.extendedTextMessage)
         {
             text = message.message.extendedTextMessage.text;
         }
+        else if(message.message.imageMessage)
+        {
+            text = message.message.imageMessage.caption
+        }
+        else if(message.message.videoMessage)
+        {
+            text = message.message.videoMessage.caption
+        }
+        else if(message.message.documentMessage)
+        {
+            text = message.message.documentMessage.caption
+        }
+        else if(message.message.buttonsResponseMessage)
+        {
+            text = message.message.buttonsResponseMessage.selectedButtonId
+        }
+        else if(message.message.listResponseMessage)
+        {
+            text = message.message.listResponseMessage.singleSelectReply.selectedRowId
+        }
+        else if(message.message.templateButtonReplyMessage)
+        {
+            text = message.message.templateButtonReplyMessage.selectedRowId
+        }
+        else if(message.message.reactionMessage)
+        {
+            text = message.message.reactionMessage.text
+        }
+         
+            
 
-
-// message.message.extendedTextMessage.text;
-
+          
             const mynumber = number.replace(/\D/g, '')
             const texte = text.toLowerCase()
             console.log(mynumber)
