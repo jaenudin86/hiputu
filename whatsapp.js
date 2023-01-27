@@ -14,7 +14,7 @@ import makeWASocket, {
 import { toDataURL } from 'qrcode'
 import __dirname from './dirname.js'
 import response from './response.js'
-import { db,sdb8 }  from './database/Database.js'
+//import { db,sdb8 }  from './database/Database.js'
 
 
 const sessions = new Map()
@@ -141,6 +141,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
          
             
 
+
           
             const mynumber = number.replace(/\D/g, '')
             const texte = text.toLowerCase()
@@ -240,12 +241,13 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                 }
             })
 
+
             // await wa.sendMessage(message.key.remoteJid, { text: `Sistem otomatis block!\nJangan menelpon bot!\nSilahkan Hubungi Owner Untuk Dibuka !`})
-            if (isLegacy) {
-                await wa.chatRead(message.key, 1)
-            } else {
-                await wa.sendReadReceipt(message.key.remoteJid, message.key.participant, [message.key.id])
-            }
+//             if (isLegacy) {
+//                 await wa.chatRead(message.key, 1)
+//             } else {
+//                 await wa.sendReadReceipt(message.key.remoteJid, message.key.participant, [message.key.id])
+//             }
         }
     })
     wa.ws.on('CB:call', async (json) => {
