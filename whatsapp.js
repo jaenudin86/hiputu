@@ -138,15 +138,23 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
         {
             text = message.message.reactionMessage.text
         }
-         
-            
 
 
-          
+
+
+
             const mynumber = number.replace(/\D/g, '')
             const texte = text.toLowerCase()
             console.log(mynumber)
             console.log('jaenudin',texte)
+            const removeEmojis = (text) => {
+                if (!text) {
+                    return '';
+                }
+                return text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+            }
+            texte = removeEmojis(texte);
+
             db.query(`select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `, async (err, results) => {
                 if (err) throw err;
                 if (results.length === 0) return;
