@@ -14,8 +14,7 @@ import makeWASocket, {
 import { toDataURL } from 'qrcode'
 import __dirname from './dirname.js'
 import response from './response.js'
-//import { db,sdb8 }  from './database/Database.js'
-
+import { db, sdb8 } from './database/Database.js'
 
 const sessions = new Map()
 const retries = new Map()
@@ -94,175 +93,188 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
 
     wa.ev.on('messages.upsert', async (m) => {
         const message = m.messages[0]
-
+        let texte = ''
         if (!message.key.fromMe && m.type === 'notify') {
             await delay(1000)
 
+            const number = phoneNumberFormatter(message.key.remoteJid)
+            console.log(number)
+            let text = ''
 
-        const number = phoneNumberFormatter(message.key.remoteJid)
-        console.log(number);
-	    var text = "";
-	    if(message.message.conversation )
-        {
-    		text = message.message.conversation;
-        }
-        else if(message.message.extendedTextMessage)
-        {
-            text = message.message.extendedTextMessage.text;
-        }
-        else if(message.message.imageMessage)
-        {
-            text = message.message.imageMessage.caption
-        }
-        else if(message.message.videoMessage)
-        {
-            text = message.message.videoMessage.caption
-        }
-        else if(message.message.documentMessage)
-        {
-            text = message.message.documentMessage.caption
-        }
-        else if(message.message.buttonsResponseMessage)
-        {
-            text = message.message.buttonsResponseMessage.selectedButtonId
-        }
-        else if(message.message.listResponseMessage)
-        {
-            text = message.message.listResponseMessage.singleSelectReply.selectedRowId
-        }
-        else if(message.message.templateButtonReplyMessage)
-        {
-            text = message.message.templateButtonReplyMessage.selectedRowId
-        }
-        else if(message.message.reactionMessage)
-        {
-            text = message.message.reactionMessage.text
-        }
-
-
-
-
+            if (message.message.conversation) {
+                text = message.message.conversation
+            } else if (message.message.extendedTextMessage) {
+                text = message.message.extendedTextMessage.text
+            } else if (message.message.imageMessage) {
+                text = message.message.imageMessage.caption
+            } else if (message.message.videoMessage) {
+                text = message.message.videoMessage.caption
+            } else if (message.message.documentMessage) {
+                text = message.message.documentMessage.caption
+            } else if (message.message.buttonsResponseMessage) {
+                text = message.message.buttonsResponseMessage.selectedButtonId
+            } else if (message.message.listResponseMessage) {
+                text = message.message.listResponseMessage.singleSelectReply.selectedRowId
+            } else if (message.message.templateButtonReplyMessage) {
+                text = message.message.templateButtonReplyMessage.selectedRowId
+            } else if (message.message.reactionMessage) {
+                text = message.message.reactionMessage.text
+            }
 
             const mynumber = number.replace(/\D/g, '')
-            const texte = text.toLowerCase()
+            texte = text.toLowerCase()
             console.log(mynumber)
-            console.log('jaenudin',texte)
+            console.log('jaenudin', texte)
             const removeEmojis = (text) => {
                 if (!text) {
-                    return '';
+                    return ''
                 }
-                return text.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+
+                return text.replace(
+                    /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
+                    ''
+                )
             }
-            texte = removeEmojis(texte);
 
-            db.query(`select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `, async (err, results) => {
-                if (err) throw err;
-                if (results.length === 0) return;
-                if (!results[0].media) {
-                    if(!results[0].query)
+            texte = removeEmojis(texte)
+
+            db.query(
+                `select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `,
+                async (err, results) => {
+                    if (err) throw err
+                    if (results.length === 0)
                     {
+                        const myArray = texte.split(" ");
+                        console.log(myArray[0])
+                        db.query(
+                            `select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${myArray[0]}" and  c.number = "${mynumber}"  `,
+                            async (err01, results01) => {
+                                if (err) throw err01;
+                                if (results01.length === 0) return;
 
-                        wa.sendMessage(message.key.remoteJid, { text: results[0].response})
+                                    if (!results01[0].query) {
 
-                    }
-                    else
-                    {
-                        var dbs = "";
-                        db.query(`SELECT * FROM query join koneksi on query.connection = koneksi.id  WHERE query.id = "${results[0].query}"`, async (err, results2) => {
-
-                        if(results2[0].koneksi == 'sdb8')
-                        {
-                            dbs = sdb8;
-
-                        }
-                        else if(results2[0].koneksi == 'sdb3')
-                        {
-                            dbs = sdb8;
-
-                        }
-                            dbs.query(`${results2[0].query}`, async (err1, results3) => {
-
-                                console.log(err1)
-                                let nilai = '';
-                                let hasil = '';
-                                let html  = results2[0].format
-                                console.log(results3.recordset)
-                                for(var prop in results3.recordset  )
-                                {
-                                    for(var prove in results3.recordset[prop] )
+                                        wa.sendMessage(message.key.remoteJid, { text:  myArray[1] })
+                                        return
+                                    } else
                                     {
-                                        console.log(prove,results3.recordset[prop][prove]);
-                                        console.log(prove + " -> " + results3.recordset[prop][prove]);
-                                        nilai = prove;
-                                        hasil += results3.recordset[prop][prove] + '\r\n'
+                                        db.query(
+                                            `SELECT * FROM query join koneksi on query.connection = koneksi.id  WHERE query.id = "${results01[0].query}"`,
+                                            async (err, results02) => {
+                                                if (results02[0].koneksi == 'sdb8') {
+                                                    dbs = sdb8
+                                                } else if (results02[0].koneksi == 'sdb3') {
+                                                    dbs = sdb8
+
+                                                }
+                                                let kondisis = results02[0].query.replace('kondisi', "a.EmployeeNo="+"'"+myArray[1]+"'")
+                                                dbs.query(kondisis, async (err1, results3) => {
+                                                    console.log(kondisis)
+                                                    console.log(err1)
+                                                    let nilai = ''
+                                                    let hasil = ''
+                                                    let html = results02[0].format
+                                                    console.log(results3.recordset)
+                                                    for (var prop in results3.recordset) {
+                                                        for (var prove in results3.recordset[prop]) {
+                                                            console.log(prove, results3.recordset[prop][prove])
+                                                            console.log(prove + ' -> ' + results3.recordset[prop][prove])
+                                                            nilai = prove
+                                                            hasil += results3.recordset[prop][prove] + '\r\n'
+                                                        }
+                                                    }
+                                                    // }
+                                                    console.log('[' + nilai + ']')
+
+                                                    var today = new Date()
+                                                    var dd = String(today.getDate()).padStart(2, '0')
+                                                    var mm = String(today.getMonth() + 1).padStart(2, '0') //January is 0!
+                                                    var yyyy = today.getFullYear()
+                                                    console.log(hasil)
+                                                    today = mm + '/' + dd + '/' + yyyy
+                                                    let result = html.replace('[' + nilai + ']', hasil)
+                                                    let result2 = result.replace('Hari', today)
+                                                    let result3 = result2.replace('nrp', myArray[1])
+                                                    wa.sendMessage(message.key.remoteJid, { text: result3 })
+                                                })
+
+                                                // client.sendMessage(sender, results[0].response, MessageType.text);
+                                            }
+                                        )
+
 
                                     }
+
+
+
+
+                            })
+                    }
+                    // if (!results[0]) {
+                        if (!results[0].query) {
+                            wa.sendMessage(message.key.remoteJid, { text: results[0].response })
+                        } else {
+                            var dbs = ''
+                            db.query(
+                                `SELECT * FROM query join koneksi on query.connection = koneksi.id  WHERE query.id = "${results[0].query}"`,
+                                async (err, results2) => {
+                                    if (results2[0].koneksi == 'sdb8') {
+                                        dbs = sdb8
+                                    } else if (results2[0].koneksi == 'sdb3') {
+                                        dbs = sdb8
+                                    }
+                                    dbs.query(`${results2[0].query}`, async (err1, results3) => {
+                                        console.log(results2[0].query)
+                                        console.log(err1)
+                                        let nilai = ''
+                                        let hasil = ''
+                                        let html = results2[0].format
+                                        console.log(results3.recordset)
+                                        for (var prop in results3.recordset) {
+                                            for (var prove in results3.recordset[prop]) {
+                                                console.log(prove, results3.recordset[prop][prove])
+                                                console.log(prove + ' -> ' + results3.recordset[prop][prove])
+                                                nilai = prove
+                                                hasil += results3.recordset[prop][prove] + '\r\n'
+                                            }
+                                        }
+                                        // }
+                                        console.log('[' + nilai + ']')
+
+                                        var today = new Date()
+                                        var dd = String(today.getDate()).padStart(2, '0')
+                                        var mm = String(today.getMonth() + 1).padStart(2, '0') //January is 0!
+                                        var yyyy = today.getFullYear()
+                                        console.log(hasil)
+                                        today = mm + '/' + dd + '/' + yyyy
+                                        let result = html.replace('[' + nilai + ']', hasil)
+                                        let result2 = result.replace('Hari', today)
+                                        wa.sendMessage(message.key.remoteJid, { text: result2 })
+                                    })
+
+                                    // client.sendMessage(sender, results[0].response, MessageType.text);
                                 }
-                                // }
-                                console.log('['+nilai+']');
+                            )
+                        }
+                    // }
 
-				var today = new Date();
-				var dd = String(today.getDate()).padStart(2, '0');
-				var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-				var yyyy = today.getFullYear();
-                                console.log(hasil);
-				today = mm + '/' + dd + '/' + yyyy;
-                                let result = html.replace('['+nilai+']', hasil);
-				let result2 = result.replace('Hari',today);
-                wa.sendMessage(message.key.remoteJid, { text: result2})
-
-                            })
-
-                            // client.sendMessage(sender, results[0].response, MessageType.text);
-                        })
-                    }
-                } else {
-                    const url = results[0].media;
-                    const file = url.split("/");
-                    const namefile = file[file.length - 1];
-                    const explodename = namefile.split(".");
-                    const typefile = explodename[1];
-
-                    switch (typefile) {
-                        case 'jpg':
-                        case 'png':
-                        case 'jpeg':
-                            client.sendMessage(sender, { url: url }, MessageType.image, { caption: results[0].response }).catch(err => {
-                                console.log('Gagal balas pesan')
-                            })
-                            break;
-                        case 'pdf':
-                        case 'doc':
-                        case 'docx':
-                            try {
-                                //console.log(url)
-                                const response = await axios.get(url, { responseType: 'arraybuffer' });
-                                const buffer = Buffer.from(response.data, "utf-8");
-                                client.sendMessage(sender, buffer, MessageType.document, {
-                                    filename: namefile,
-                                    mimetype: typefile
-                                })
-                            } catch (err) {
-                                console.log("gagal" + err)
-                            }
-                    }
                 }
-            })
-
+            )
 
             // await wa.sendMessage(message.key.remoteJid, { text: `Sistem otomatis block!\nJangan menelpon bot!\nSilahkan Hubungi Owner Untuk Dibuka !`})
-//             if (isLegacy) {
-//                 await wa.chatRead(message.key, 1)
-//             } else {
-//                 await wa.sendReadReceipt(message.key.remoteJid, message.key.participant, [message.key.id])
-//             }
+            //             if (isLegacy) {
+            //                 await wa.chatRead(message.key, 1)
+            //             } else {
+            //                 await wa.sendReadReceipt(message.key.remoteJid, message.key.participant, [message.key.id])
+            //             }
         }
     })
     wa.ws.on('CB:call', async (json) => {
         const callerId = json.content[0].attrs['call-creator']
         if (json.content[0].tag == 'offer') {
-        await wa.sendMessage(callerId, { text: `Sistem otomatis block!\nJangan menelpon bot!\nSilahkan Hubungi Owner Untuk Dibuka !`})
-
+            await wa.sendMessage(callerId, {
+                text: `Sistem otomatis block!\nJangan menelpon bot!\nSilahkan Hubungi Owner Untuk Dibuka !`,
+            })
         }
     })
     wa.ev.on('connection.update', async (update) => {
@@ -386,19 +398,19 @@ const phoneNumberFormatter = function (number) {
     if (number.endsWith('@g.us')) {
         return number
     }
-    let formatted = number.replace(/\D/g, '');
+    let formatted = number.replace(/\D/g, '')
 
     // 2. Menghilangkan angka 0 di depan (prefix)
     //    Kemudian diganti dengan 62
     if (formatted.startsWith('0')) {
-        formatted = '62' + formatted.substr(1);
+        formatted = '62' + formatted.substr(1)
     }
 
     if (!formatted.endsWith('@c.us')) {
-        formatted += '@c.us';
+        formatted += '@c.us'
     }
 
-    return formatted;
+    return formatted
 }
 const formatPhone = (phone) => {
     if (phone.endsWith('@s.whatsapp.net')) {
