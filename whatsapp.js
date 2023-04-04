@@ -235,9 +235,9 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                         }
 
                         // If (!results[0]) {
-                        if (!results[0]) {
-                            wa.sendMessage(message.key.remoteJid, { text: results[0].response })
-                        } else {
+                        // if (!results[0]) {
+                        //     wa.sendMessage(message.key.remoteJid, { text: results[0].response })
+                        // } else {
                             var dbs = ''
                             db.query(
                                 `SELECT * FROM query join koneksi on query.connection = koneksi.id  WHERE query.id = "${results[0].query}"`,
@@ -281,7 +281,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                                     // Client.sendMessage(sender, results[0].response, MessageType.text);
                                 }
                             )
-                        }
+                        // }
                         // }
                     }
                 )
