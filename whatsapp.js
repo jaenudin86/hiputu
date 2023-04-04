@@ -230,7 +230,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                         }
 
                         // If (!results[0]) {
-                        if (!results[0]) {
+                        if (!results) {
                             wa.sendMessage(message.key.remoteJid, { text: results[0].response })
                         } else {
                             var dbs = ''
