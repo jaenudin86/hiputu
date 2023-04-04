@@ -142,12 +142,14 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
             let startup = false
             if (texte === 'hiputu') {
                 startup = true
+                console.log('start up'.startup)
                 myCache.set('startapp', 'hiputu')
             }
 
             const value = myCache.get('startapp')
             if (value === 'hiputu') {
                 startup = true
+                console.log('start up'.startup)
             }
 
             if (startup === true) {
