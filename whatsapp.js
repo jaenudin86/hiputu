@@ -144,6 +144,9 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                 startup = true
                 console.log('start up'.startup)
                 myCache.set('startapp', 'hiputu')
+                wa.sendMessage(message.key.remoteJid, {
+                    text: 'bot wa hiput \n aktif!',
+                })
             }
 
             const value = myCache.get('startapp')
@@ -232,7 +235,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                         }
 
                         // If (!results[0]) {
-                        if (!results) {
+                        if (!results[0]) {
                             wa.sendMessage(message.key.remoteJid, { text: results[0].response })
                         } else {
                             var dbs = ''
