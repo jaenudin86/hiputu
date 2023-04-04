@@ -16,7 +16,7 @@ import __dirname from './dirname.js'
 import response from './response.js'
 import { db, sdb8 } from './database/Database.js'
 import NodeCache from 'node-cache'
-const myCache = new NodeCache({ stdTTL: 300 })
+const myCache = new NodeCache({ stdTTL: 80 })
 
 const sessions = new Map()
 const retries = new Map()
