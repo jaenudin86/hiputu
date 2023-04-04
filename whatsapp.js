@@ -145,7 +145,7 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                 console.log('start up'.startup)
                 myCache.set('startapp', 'hiputu')
                 wa.sendMessage(message.key.remoteJid, {
-                    text: 'bot wa hiput \n aktif!',
+                    text: 'bot wa hiputu\naktif!',
                 })
             }
 
