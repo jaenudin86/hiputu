@@ -15,6 +15,8 @@ import { toDataURL } from 'qrcode'
 import __dirname from './dirname.js'
 import response from './response.js'
 import { db, sdb8 } from './database/Database.js'
+import NodeCache from 'node-cache'
+const myCache = new NodeCache({ stdTTL: 300 })
 
 const sessions = new Map()
 const retries = new Map()
@@ -137,27 +139,42 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
             }
 
             texte = removeEmojis(texte)
+            let startup = false
+            if (texte === 'hiputu') {
+                startup = true
+                myCache.set('startapp', 'hiputu')
+            }
 
-            db.query(
-                `select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `,
-                async (err, results) => {
-                    if (err) throw err
-                    if (results.length === 0)
-                    {
-                        const myArray = texte.split(" ");
-                        console.log(myArray[0])
-                        db.query(
-                            `select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${myArray[0]}" and  c.number = "${mynumber}"  `,
-                            async (err01, results01) => {
-                                if (err) throw err01;
-                                if (results01.length === 0) return;
+            const value = myCache.get('startapp')
+            if (value === 'hiputu') {
+                startup = true
+            }
+
+            if (startup === true) {
+                db.query(
+                    `select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${texte}" and  c.number = "${mynumber}"  `,
+                    async (err, results) => {
+                        if (err) {
+                            throw err
+                        }
+
+                        if (results.length === 0) {
+                            const myArray = texte.split(' ')
+                            console.log(myArray[0])
+                            db.query(
+                                `select * from autoreply a left join group_kontak_d b on a.group_id =  b.kontak_id left join contact c on b.kontak = c.id    WHERE LOWER(keyword) = "${myArray[0]}" and  c.number = "${mynumber}"  `,
+                                async (err01, results01) => {
+                                    if (err) {
+                                        throw err01
+                                    }
+
+                                    if (results01.length === 0) {
+                                        return
+                                    }
 
                                     if (!results01[0].query) {
-
-                                        wa.sendMessage(message.key.remoteJid, { text:  myArray[1] })
-                                        return
-                                    } else
-                                    {
+                                        wa.sendMessage(message.key.remoteJid, { text: myArray[1] })
+                                    } else {
                                         db.query(
                                             `SELECT * FROM query join koneksi on query.connection = koneksi.id  WHERE query.id = "${results01[0].query}"`,
                                             async (err, results02) => {
@@ -165,53 +182,55 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                                                     dbs = sdb8
                                                 } else if (results02[0].koneksi == 'sdb3') {
                                                     dbs = sdb8
-
                                                 }
-                                                let kondisis = results02[0].query.replace('kondisi', "a.EmployeeNo="+"'"+myArray[1]+"'")
+
+                                                const kondisis = results02[0].query.replace(
+                                                    'kondisi',
+                                                    'a.EmployeeNo=' + "'" + myArray[1] + "'"
+                                                )
                                                 dbs.query(kondisis, async (err1, results3) => {
                                                     console.log(kondisis)
                                                     console.log(err1)
                                                     let nilai = ''
                                                     let hasil = ''
-                                                    let html = results02[0].format
+                                                    const html = results02[0].format
                                                     console.log(results3.recordset)
-                                                    for (var prop in results3.recordset) {
-                                                        for (var prove in results3.recordset[prop]) {
+                                                    for (const prop in results3.recordset) {
+                                                        for (const prove in results3.recordset[prop]) {
                                                             console.log(prove, results3.recordset[prop][prove])
-                                                            console.log(prove + ' -> ' + results3.recordset[prop][prove])
+                                                            console.log(
+                                                                prove + ' -> ' + results3.recordset[prop][prove]
+                                                            )
                                                             nilai = prove
                                                             hasil += results3.recordset[prop][prove] + '\r\n'
                                                         }
                                                     }
+
                                                     // }
                                                     console.log('[' + nilai + ']')
 
-                                                    var today = new Date()
-                                                    var dd = String(today.getDate()).padStart(2, '0')
-                                                    var mm = String(today.getMonth() + 1).padStart(2, '0') //January is 0!
-                                                    var yyyy = today.getFullYear()
+                                                    let today = new Date()
+                                                    const dd = String(today.getDate()).padStart(2, '0')
+                                                    const mm = String(today.getMonth() + 1).padStart(2, '0') // January is 0!
+                                                    const yyyy = today.getFullYear()
                                                     console.log(hasil)
                                                     today = mm + '/' + dd + '/' + yyyy
-                                                    let result = html.replace('[' + nilai + ']', hasil)
-                                                    let result2 = result.replace('Hari', today)
-                                                    let result3 = result2.replace('nrp', myArray[1])
+                                                    const result = html.replace('[' + nilai + ']', hasil)
+                                                    const result2 = result.replace('Hari', today)
+                                                    const result3 = result2.replace('nrp', myArray[1])
                                                     wa.sendMessage(message.key.remoteJid, { text: result3 })
                                                 })
 
-                                                // client.sendMessage(sender, results[0].response, MessageType.text);
+                                                // Client.sendMessage(sender, results[0].response, MessageType.text);
                                             }
                                         )
-
-
                                     }
+                                }
+                            )
+                        }
 
-
-
-
-                            })
-                    }
-                    // if (!results[0]) {
-                        if (!results[0].query) {
+                        // If (!results[0]) {
+                        if (!results[0]) {
                             wa.sendMessage(message.key.remoteJid, { text: results[0].response })
                         } else {
                             var dbs = ''
@@ -223,45 +242,47 @@ const createSession = async (sessionId, isLegacy = false, res = null) => {
                                     } else if (results2[0].koneksi == 'sdb3') {
                                         dbs = sdb8
                                     }
+
                                     dbs.query(`${results2[0].query}`, async (err1, results3) => {
                                         console.log(results2[0].query)
                                         console.log(err1)
                                         let nilai = ''
                                         let hasil = ''
-                                        let html = results2[0].format
+                                        const html = results2[0].format
                                         console.log(results3.recordset)
-                                        for (var prop in results3.recordset) {
-                                            for (var prove in results3.recordset[prop]) {
+                                        for (const prop in results3.recordset) {
+                                            for (const prove in results3.recordset[prop]) {
                                                 console.log(prove, results3.recordset[prop][prove])
                                                 console.log(prove + ' -> ' + results3.recordset[prop][prove])
                                                 nilai = prove
                                                 hasil += results3.recordset[prop][prove] + '\r\n'
                                             }
                                         }
+
                                         // }
                                         console.log('[' + nilai + ']')
 
-                                        var today = new Date()
-                                        var dd = String(today.getDate()).padStart(2, '0')
-                                        var mm = String(today.getMonth() + 1).padStart(2, '0') //January is 0!
-                                        var yyyy = today.getFullYear()
+                                        let today = new Date()
+                                        const dd = String(today.getDate()).padStart(2, '0')
+                                        const mm = String(today.getMonth() + 1).padStart(2, '0') // January is 0!
+                                        const yyyy = today.getFullYear()
                                         console.log(hasil)
                                         today = mm + '/' + dd + '/' + yyyy
-                                        let result = html.replace('[' + nilai + ']', hasil)
-                                        let result2 = result.replace('Hari', today)
+                                        const result = html.replace('[' + nilai + ']', hasil)
+                                        const result2 = result.replace('Hari', today)
                                         wa.sendMessage(message.key.remoteJid, { text: result2 })
                                     })
 
-                                    // client.sendMessage(sender, results[0].response, MessageType.text);
+                                    // Client.sendMessage(sender, results[0].response, MessageType.text);
                                 }
                             )
                         }
-                    // }
+                        // }
+                    }
+                )
+            }
 
-                }
-            )
-
-            // await wa.sendMessage(message.key.remoteJid, { text: `Sistem otomatis block!\nJangan menelpon bot!\nSilahkan Hubungi Owner Untuk Dibuka !`})
+            // Await wa.sendMessage(message.key.remoteJid, { text: `Sistem otomatis block!\nJangan menelpon bot!\nSilahkan Hubungi Owner Untuk Dibuka !`})
             //             if (isLegacy) {
             //                 await wa.chatRead(message.key, 1)
             //             } else {
@@ -393,11 +414,13 @@ const sendMessage = async (session, receiver, message) => {
         return Promise.reject(null) // eslint-disable-line prefer-promise-reject-errors
     }
 }
+
 const phoneNumberFormatter = function (number) {
     // 1. Menghilangkan karakter selain angka
     if (number.endsWith('@g.us')) {
         return number
     }
+
     let formatted = number.replace(/\D/g, '')
 
     // 2. Menghilangkan angka 0 di depan (prefix)
@@ -412,6 +435,7 @@ const phoneNumberFormatter = function (number) {
 
     return formatted
 }
+
 const formatPhone = (phone) => {
     if (phone.endsWith('@s.whatsapp.net')) {
         return phone
